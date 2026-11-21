@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, ChevronsLeft, ChevronsRight, FileSpreadsheet, LayoutDashboard, LogOut, MessageSquareText, Moon, Sun, Telescope, Users } from "lucide-react";
+import { BookOpen, ChevronsLeft, ChevronsRight, FileSpreadsheet, KeyRound, LayoutDashboard, LogOut, MessageSquareText, Moon, Sun, Telescope, Users } from "lucide-react";
 import { LogoLockup, LogoMark } from "@/components/Logo";
 import { useWorkspace } from "@/components/Workspace";
 import { cx } from "@/lib/format";
@@ -81,6 +81,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <button onClick={toggleTheme} className="rounded-lg p-2 text-on-chrome-dim hover:bg-chrome-2 hover:text-white" title="Light / dark">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
+            <Link href="/set-password" className="rounded-lg p-2 text-on-chrome-dim hover:bg-chrome-2 hover:text-white" title="Change password">
+              <KeyRound className="h-4 w-4" />
+            </Link>
             <a href="/auth/signout" className="rounded-lg p-2 text-on-chrome-dim hover:bg-chrome-2 hover:text-white" title="Sign out">
               <LogOut className="h-4 w-4" />
             </a>

@@ -33,7 +33,9 @@ export default function SetPasswordPage() {
       setBusy(false);
       return setError(/aal2|reauth/i.test(upd.message) ? "Enter your authenticator code first, then change your password." : upd.message);
     }
-    router.replace("/mfa");
+    // already fully signed in (changing a password) → back to work; else on to two-step
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    router.replace(aal?.currentLevel === "aal2" ? "/" : "/mfa");
     router.refresh();
   };
 
