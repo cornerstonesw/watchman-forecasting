@@ -1,0 +1,57 @@
+"use client";
+
+import { FormEvent, Suspense, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Loader2, Mail } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import AuthShell, { NoteBanner } from "@/components/auth/AuthShell";
+
+export default function ForgotPage() {
+  return <Suspense><Forgot /></Suspense>;
+}
+
+// Reset — or set for the first time — a password. Supabase emails a link that
+// lands on /auth/confirm, which continues to /set-password. The answer is the
+// same whether or not the email has an account (no account guessing).
+function Forgot() {
+  const first = useSearchParams().get("first") === "1";
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    const redirectTo = `${window.location.origin}/auth/confirm?type=recovery`;
+    if (first) {
+      // first time: create the sign-in account (only an invited email can get in — claim_member)
+      const temp = crypto.getRandomValues(new Uint8Array(24)).reduce((s, b) => s + b.toString(16).padStart(2, "0"), "");
+      await supabase.auth.signUp({ email: email.trim(), password: temp, options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup` } });
+    } else {
+      await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+    }
+    setBusy(false);
+    setSent(true);
+  };
+
+  return (
+    <AuthShell title={first ? "Set up my password" : "Reset password"}
+      subtitle={first ? "We'll email you a link to set your password." : "We'll email you a link to choose a new password."}
+      footer={<Link href="/login" className="font-medium text-teal hover:underline">Back to sign in</Link>}>
+      {sent ? (
+        <NoteBanner>If <b>{email}</b> has Watchman access, a link is on its way. It expires in an hour.</NoteBanner>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="label" htmlFor="email">Email</label>
+            <input id="email" className="input" type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <button className="btn-primary h-10 w-full" disabled={busy}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />} Email me a link
+          </button>
+        </form>
+      )}
+    </AuthShell>
+  );
+}

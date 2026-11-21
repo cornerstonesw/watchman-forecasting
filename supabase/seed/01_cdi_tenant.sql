@@ -1,0 +1,23 @@
+-- CDI Industries: tenant, dataset, members (from the Base44 AppUser export)
+insert into tenant (id, code, name) values ('00000000-0000-4000-8000-0000000000c1', 'cdi', 'CDI Industries') on conflict do nothing;
+insert into security_settings (tenant_id) values ('00000000-0000-4000-8000-0000000000c1') on conflict do nothing;
+insert into dataset (id, tenant_id, name, customer) values ('00000000-0000-4000-8000-0000000000d1', '00000000-0000-4000-8000-0000000000c1', 'SMI Forecast', 'RTX (Raytheon)') on conflict do nothing;
+insert into member (tenant_id, email, first_name, last_name, login_name, mobile, role, is_active) values ('00000000-0000-4000-8000-0000000000c1', 'nwv9j6rrwt@privaterelay.appleid.com', 'Roger', 'Ross', 'nwv9j6rrwt@privatere', '(860) 713-8376', 'user', true) on conflict (tenant_id, email) do nothing;
+insert into member (tenant_id, email, first_name, last_name, login_name, mobile, role, is_active) values ('00000000-0000-4000-8000-0000000000c1', 'michaelwebberross@gmail.com', 'Michael', 'Ross', 'mross', '(860) 338-5409', 'admin', true) on conflict (tenant_id, email) do nothing;
+insert into member (tenant_id, email, first_name, last_name, login_name, mobile, role, is_active) values ('00000000-0000-4000-8000-0000000000c1', 'rbross@icloud.com', 'Roger', 'Ross', 'bross', '(860) 713-8376', 'admin', true) on conflict (tenant_id, email) do nothing;
+insert into member (tenant_id, email, first_name, last_name, login_name, mobile, role, is_active) values ('00000000-0000-4000-8000-0000000000c1', 'alynch@cdindustries.com', 'Andy', 'Lynch', 'alynch', null, 'admin', true) on conflict (tenant_id, email) do nothing;
+insert into member (tenant_id, email, first_name, last_name, login_name, mobile, role, is_active) values ('00000000-0000-4000-8000-0000000000c1', 'roger@cornerstonesftw.com', 'Roger', 'Ross', 'rross', '(860) 713-8376', 'admin', true) on conflict (tenant_id, email) do nothing;
+-- link anyone who already signed up
+update member m set user_id = u.id from auth.users u where lower(u.email) = lower(m.email) and m.user_id is null;
+-- the Base44 POC's zero-result questions: a ready-made review list
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'what parts tranding above 500', 'typed', 0, 'base44', '2026-09-10T02:01:39.428Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'what parts are trending above 500', 'typed', 0, 'base44', '2026-09-10T02:01:07.420Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'what parts tranding above 500', 'typed', 0, 'base44', '2026-09-10T02:00:40.910Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'all 2025 M12 records', 'typed', 0, 'base44', '2026-07-27T16:22:53.039Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'show part numbers that have a trend increased', 'typed', 0, 'base44', '2026-07-27T14:15:35.135Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'display all part numbers that are trending increased', 'typed', 0, 'base44', '2026-07-27T14:14:59.397Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'show all part numbers that have increased', 'typed', 0, 'base44', '2026-07-27T14:13:38.298Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'for part number 11480860-A3103K show months that had a change in qty', 'typed', 0, 'base44', '2026-07-27T03:51:14.049Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'show part numbers that heve changed by 10% or more', 'typed', 0, 'base44', '2026-07-27T02:11:08.710Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'show all part numbers that have changed by more than 5%', 'typed', 0, 'base44', '2026-07-27T02:10:14.890Z');
+insert into question (tenant_id, text, source, result_count, engine, asked_at) values ('00000000-0000-4000-8000-0000000000c1', 'show all part numbers that have changed by more than 10%', 'typed', 0, 'base44', '2026-07-27T02:09:41.588Z');

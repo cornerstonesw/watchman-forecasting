@@ -1,0 +1,37 @@
+-- Engine-default field dictionary (tenant_id null). Tenants can override any
+-- key with their own row. The Q&A prompt is built from this table.
+insert into field_def (tenant_id, key, label, kind, synonyms, allowed, notes, filterable, sort_order) values
+(null, 'part_no', 'Part Number', 'text',
+ '{part,parts,part number,part #,part no,p/n,pn,item,item number,sku}', '{}',
+ 'Customer part number. Partial match ("contains") is the default; use "parts" for an exact list.', true, 10),
+(null, 'descr', 'Description', 'text',
+ '{description,item description,part name,commodity,type of part,capacitor,resistor,connector,screw,washer,nut,bolt,fastener,cable,diode,chip}', '{}',
+ 'Part description from the customer file, e.g. CAPACITOR, RESISTOR, CONNECTOR. Use for "all capacitors" etc. (partial match).', true, 20),
+(null, 'period', 'Period', 'period',
+ '{period,month,forecast month,bucket,need month,demand month,horizon,past due,past}', '{}',
+ 'Forecast bucket. Labels: "Past" (past due), "YYYY Mmm" e.g. "2026 M09", and the last bucket "YYYY+" (that month and beyond). A period is a forecast month, NOT the import date.', true, 30),
+(null, 'prev_qty', 'Previous Qty', 'number',
+ '{previous,prior,old,before,last week,last import,baseline,base,week 1,was}', '{}',
+ 'Quantity in the BASE (older) snapshot being compared.', true, 40),
+(null, 'qty', 'Current Qty', 'number',
+ '{current,latest,now,new quantity,quantity,qty,demand,forecast,forecast quantity,week 3,is}', '{}',
+ 'Quantity in the CURRENT (newer) snapshot. "Parts with demand above 500" = qty_min 500.', true, 50),
+(null, 'delta', 'Qty Change', 'number',
+ '{change,changed,delta,difference,variance,movement,swing,moved,net change,increase of,decrease of}', '{}',
+ 'Current minus previous. Positive = up, negative = down. "Changed by 100 or more" either way = abs_delta_min 100.', true, 60),
+(null, 'pct', '% Change', 'number',
+ '{percent,percentage,pct,%,rate of change,percent change}', '{}',
+ 'Percent change vs previous. Null when previous is zero. "Changed by more than 10%" either direction = abs_pct_min 10; "up more than 10%" = pct_min 10.', true, 70),
+(null, 'trend', 'Trend', 'enum',
+ '{trend,direction,up,went up,higher,increased,increase,grew,down,went down,lower,decreased,decrease,dropped,cut,unchanged,no change,same,flat,stable,shifted,rescheduled,pulled in,pushed out,moved between months,new,added,appeared,removed,dropped off,gone,disappeared}',
+ '{Increased,Decreased,No Change,Shifted,New,Removed}',
+ 'Increased / Decreased (total moved), No Change, Shifted (part total unchanged but quantities moved between months: pull-ins / push-outs; part view only), New (not in the previous snapshot), Removed (no longer forecast).', true, 80),
+(null, 'streak', 'Trending', 'number',
+ '{trending,trend streak,momentum,consistently,in a row,keeps going up,keeps going down,each week,every import,steadily}', '{}',
+ 'Consecutive snapshots moving the same way. +2 = up two imports in a row; -2 = down two in a row. "Trending up" = streak_min 2; "trending down" = streak_max -2.', true, 90),
+(null, 'snapshot', 'Snapshot', 'date',
+ '{snapshot,import,imported,upload,file,version,as of,week of,cycle,import month}', '{}',
+ 'A dated import of the customer file. Questions compare the CURRENT snapshot against the BASE snapshot chosen at the top of the screen.', false, 100)
+on conflict (tenant_id, key) do update set
+  label = excluded.label, kind = excluded.kind, synonyms = excluded.synonyms, allowed = excluded.allowed,
+  notes = excluded.notes, filterable = excluded.filterable, sort_order = excluded.sort_order;
