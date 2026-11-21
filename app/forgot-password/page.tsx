@@ -27,7 +27,9 @@ function Forgot() {
     if (first) {
       // first time: create the sign-in account (only an invited email can get in — claim_member)
       const temp = crypto.getRandomValues(new Uint8Array(24)).reduce((s, b) => s + b.toString(16).padStart(2, "0"), "");
-      await supabase.auth.signUp({ email: email.trim(), password: temp, options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup` } });
+      const { data } = await supabase.auth.signUp({ email: email.trim(), password: temp, options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup` } });
+      // already has an account (Supabase answers with no identities): send a set-password link instead
+      if (data.user && !data.user.identities?.length) await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
     } else {
       await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
     }

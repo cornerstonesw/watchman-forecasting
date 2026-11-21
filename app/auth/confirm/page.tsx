@@ -35,7 +35,13 @@ function Confirm() {
       let failure: string | null = null;
       const code = params.get("code");
       const tokenHash = params.get("token_hash");
-      if (code) failure = (await supabase.auth.exchangeCodeForSession(code)).error?.message ?? null;
+      if (code) {
+        const r = await supabase.auth.exchangeCodeForSession(code);
+        if (r.error && /verifier/i.test(r.error.message)) {
+          return setError("This link has to be opened in the same browser you started in. Ask for a new link from this browser (Forgot password).");
+        }
+        failure = r.error?.message ?? null;
+      }
       else if (tokenHash && type) failure = (await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType })).error?.message ?? null;
       else if (hash.get("access_token") && hash.get("refresh_token"))
         failure = (await supabase.auth.setSession({ access_token: hash.get("access_token")!, refresh_token: hash.get("refresh_token")! })).error?.message ?? null;
