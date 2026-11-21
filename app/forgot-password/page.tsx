@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import AuthShell, { NoteBanner } from "@/components/auth/AuthShell";
+import AuthShell, { ErrorBanner, NoteBanner } from "@/components/auth/AuthShell";
 
 export default function ForgotPage() {
   return <Suspense><Forgot /></Suspense>;
@@ -19,21 +19,30 @@ function Forgot() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setError(null);
+    let failure: { message: string; status?: number } | null = null;
     const redirectTo = `${window.location.origin}/auth/confirm?type=recovery`;
     if (first) {
       // first time: create the sign-in account (only an invited email can get in — claim_member)
       const temp = crypto.getRandomValues(new Uint8Array(24)).reduce((s, b) => s + b.toString(16).padStart(2, "0"), "");
-      const { data } = await supabase.auth.signUp({ email: email.trim(), password: temp, options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup` } });
+      const { data, error: e1 } = await supabase.auth.signUp({ email: email.trim(), password: temp, options: { emailRedirectTo: `${window.location.origin}/auth/confirm?type=signup` } });
       // already has an account (Supabase answers with no identities): send a set-password link instead
-      if (data.user && !data.user.identities?.length) await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+      failure = e1;
+      if (!e1 && data.user && !data.user.identities?.length)
+        failure = (await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo })).error;
     } else {
-      await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+      failure = (await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo })).error;
     }
     setBusy(false);
+    // only a sending problem is shown — never whether the address has an account
+    if (failure && (failure.status === 429 || /rate limit/i.test(failure.message))) {
+      return setError("Too many emails were sent in the last hour. Please wait a few minutes and try again.");
+    }
     setSent(true);
   };
 
@@ -41,6 +50,7 @@ function Forgot() {
     <AuthShell title={first ? "Set up my password" : "Reset password"}
       subtitle={first ? "We'll email you a link to set your password." : "We'll email you a link to choose a new password."}
       footer={<Link href="/login" className="font-medium text-teal hover:underline">Back to sign in</Link>}>
+      {error && <ErrorBanner>{error}</ErrorBanner>}
       {sent ? (
         <NoteBanner>If <b>{email}</b> has Watchman access, a link is on its way. It expires in an hour.</NoteBanner>
       ) : (
